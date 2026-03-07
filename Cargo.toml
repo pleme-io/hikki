@@ -1,0 +1,36 @@
+[package]
+name = "hikki"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89.0"
+description = "Hikki (筆記) — GPU notes app for macOS and Linux"
+homepage = "https://github.com/pleme-io/hikki"
+repository = "https://github.com/pleme-io/hikki"
+readme = "README.md"
+license = "MIT"
+categories = ["os::macos-apis"]
+keywords = ["notes", "markdown", "macos", "gpu"]
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[profile.release]
+codegen-units = 1
+lto = true
+
+[dependencies]
+shikumi = { git = "https://github.com/pleme-io/shikumi" }
+sakuin = { git = "ssh://git@github.com/pleme-io/sakuin" }
+serde = { version = "1.0", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio = { version = "1", features = ["full"] }
+arc-swap = "1.8"
+dirs = "6.0"
+pulldown-cmark = "0.12"
+
+[dev-dependencies]
+tempfile = "3"
