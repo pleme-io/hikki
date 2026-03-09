@@ -8,8 +8,8 @@ homepage = "https://github.com/pleme-io/hikki"
 repository = "https://github.com/pleme-io/hikki"
 readme = "README.md"
 license = "MIT"
-categories = ["os::macos-apis"]
-keywords = ["notes", "markdown", "macos", "gpu"]
+categories = ["text-editors"]
+keywords = ["notes", "markdown", "gpu", "wiki"]
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
@@ -19,18 +19,38 @@ missing_panics_doc = "allow"
 [profile.release]
 codegen-units = 1
 lto = true
+opt-level = "z"
+strip = true
 
 [dependencies]
+# pleme-io libraries
+garasu = { git = "https://github.com/pleme-io/garasu" }
+madori = { git = "https://github.com/pleme-io/madori" }
+egaku = { git = "https://github.com/pleme-io/egaku" }
+mojiban = { git = "https://github.com/pleme-io/mojiban" }
 shikumi = { git = "https://github.com/pleme-io/shikumi" }
-sakuin = { git = "ssh://git@github.com/pleme-io/sakuin" }
+tankyu = { git = "https://github.com/pleme-io/sakuin" }
+
+# core
 serde = { version = "1.0", features = ["derive"] }
 clap = { version = "4", features = ["derive"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tokio = { version = "1", features = ["full"] }
 arc-swap = "1.8"
 dirs = "6.0"
+thiserror = "2.0"
+anyhow = "1.0"
+
+# text editing
+ropey = "1.6"
 pulldown-cmark = "0.12"
+regex = "1"
+unicode-segmentation = "1.12"
+unicode-width = "0.2"
+
+# gpu
+wgpu = "25"
+glyphon = "0.9"
 
 [dev-dependencies]
 tempfile = "3"
