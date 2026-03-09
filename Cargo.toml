@@ -29,6 +29,8 @@ madori = { git = "https://github.com/pleme-io/madori" }
 egaku = { git = "https://github.com/pleme-io/egaku" }
 mojiban = { git = "https://github.com/pleme-io/mojiban" }
 shikumi = { git = "https://github.com/pleme-io/shikumi" }
+soushi = { git = "https://github.com/pleme-io/soushi" }
+awase = { git = "https://github.com/pleme-io/awase" }
 tankyu = { git = "https://github.com/pleme-io/sakuin" }
 kaname = { git = "https://github.com/pleme-io/kaname" }
 rmcp = { version = "0.15", features = ["server", "transport-io"] }

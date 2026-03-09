@@ -2,6 +2,7 @@
 //!
 //! Modes: Normal, Insert, Visual, Command, Search.
 //! Normal mode uses hjkl navigation, leader key sequences, etc.
+//! Uses `awase::Hotkey` for key binding definitions.
 
 use madori::event::{KeyCode, Modifiers};
 
@@ -111,6 +112,71 @@ pub enum Action {
     NoOp,
 }
 
+/// Convert a madori `KeyCode` to an `awase::Key` for hotkey matching.
+fn to_awase_key(key: &KeyCode) -> Option<awase::Key> {
+    match key {
+        KeyCode::Char(c) => match c.to_ascii_lowercase() {
+            'a' => Some(awase::Key::A),
+            'b' => Some(awase::Key::B),
+            'c' => Some(awase::Key::C),
+            'd' => Some(awase::Key::D),
+            'e' => Some(awase::Key::E),
+            'f' => Some(awase::Key::F),
+            'g' => Some(awase::Key::G),
+            'h' => Some(awase::Key::H),
+            'i' => Some(awase::Key::I),
+            'j' => Some(awase::Key::J),
+            'k' => Some(awase::Key::K),
+            'l' => Some(awase::Key::L),
+            'm' => Some(awase::Key::M),
+            'n' => Some(awase::Key::N),
+            'o' => Some(awase::Key::O),
+            'p' => Some(awase::Key::P),
+            'q' => Some(awase::Key::Q),
+            'r' => Some(awase::Key::R),
+            's' => Some(awase::Key::S),
+            't' => Some(awase::Key::T),
+            'u' => Some(awase::Key::U),
+            'v' => Some(awase::Key::V),
+            'w' => Some(awase::Key::W),
+            'x' => Some(awase::Key::X),
+            'y' => Some(awase::Key::Y),
+            'z' => Some(awase::Key::Z),
+            '0' => Some(awase::Key::Num0),
+            _ => None,
+        },
+        KeyCode::Escape => Some(awase::Key::Escape),
+        KeyCode::Enter => Some(awase::Key::Return),
+        KeyCode::Tab => Some(awase::Key::Tab),
+        KeyCode::Backspace => Some(awase::Key::Backspace),
+        KeyCode::Delete => Some(awase::Key::Delete),
+        KeyCode::Up => Some(awase::Key::Up),
+        KeyCode::Down => Some(awase::Key::Down),
+        KeyCode::Left => Some(awase::Key::Left),
+        KeyCode::Right => Some(awase::Key::Right),
+        KeyCode::Space => Some(awase::Key::Space),
+        _ => None,
+    }
+}
+
+/// Convert madori modifiers to awase modifiers.
+fn to_awase_modifiers(mods: &Modifiers) -> awase::Modifiers {
+    let mut result = awase::Modifiers::NONE;
+    if mods.ctrl {
+        result = result | awase::Modifiers::CTRL;
+    }
+    if mods.alt {
+        result = result | awase::Modifiers::ALT;
+    }
+    if mods.shift {
+        result = result | awase::Modifiers::SHIFT;
+    }
+    if mods.meta {
+        result = result | awase::Modifiers::CMD;
+    }
+    result
+}
+
 /// Input handler that maps key events to actions based on current mode.
 pub struct InputHandler {
     mode: Mode,
@@ -216,15 +282,19 @@ impl InputHandler {
             };
         }
 
-        // Handle Ctrl modifiers
+        // Handle Ctrl modifiers using awase hotkey matching
         if mods.ctrl {
-            return match key {
-                KeyCode::Char('d') => Action::MoveHalfPageDown,
-                KeyCode::Char('u') => Action::MoveHalfPageUp,
-                KeyCode::Char('r') => Action::Redo,
-                KeyCode::Char('s') => Action::Save,
-                _ => Action::NoOp,
-            };
+            if let Some(awase_key) = to_awase_key(&key) {
+                let hotkey = awase::Hotkey::new(awase::Modifiers::CTRL, awase_key);
+                match hotkey.key {
+                    awase::Key::D => return Action::MoveHalfPageDown,
+                    awase::Key::U => return Action::MoveHalfPageUp,
+                    awase::Key::R => return Action::Redo,
+                    awase::Key::S => return Action::Save,
+                    _ => return Action::NoOp,
+                }
+            }
+            return Action::NoOp;
         }
 
         match key {
@@ -300,10 +370,13 @@ impl InputHandler {
 
     fn handle_insert(&mut self, key: KeyCode, mods: Modifiers) -> Action {
         if mods.ctrl {
-            return match key {
-                KeyCode::Char('s') => Action::Save,
-                _ => Action::NoOp,
-            };
+            if let Some(awase_key) = to_awase_key(&key) {
+                let hotkey = awase::Hotkey::new(awase::Modifiers::CTRL, awase_key);
+                if hotkey.key == awase::Key::S {
+                    return Action::Save;
+                }
+            }
+            return Action::NoOp;
         }
 
         match key {
@@ -615,5 +688,19 @@ mod tests {
         let mut handler = InputHandler::new();
         assert_eq!(handler.handle_key(KeyCode::Char('o'), no_mods()), Action::OpenLineBelow);
         assert_eq!(handler.mode(), Mode::Insert);
+    }
+
+    #[test]
+    fn awase_key_conversion() {
+        assert_eq!(to_awase_key(&KeyCode::Char('a')), Some(awase::Key::A));
+        assert_eq!(to_awase_key(&KeyCode::Escape), Some(awase::Key::Escape));
+        assert_eq!(to_awase_key(&KeyCode::Space), Some(awase::Key::Space));
+    }
+
+    #[test]
+    fn awase_modifier_conversion() {
+        let mods = Modifiers { ctrl: true, ..Default::default() };
+        let awase_mods = to_awase_modifiers(&mods);
+        assert!(awase_mods.contains(awase::Modifiers::CTRL));
     }
 }

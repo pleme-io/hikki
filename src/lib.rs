@@ -5,4 +5,5 @@ pub mod links;
 pub mod mcp;
 pub mod notes;
 pub mod render;
+pub mod scripting;
 pub mod search;
