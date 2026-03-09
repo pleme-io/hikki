@@ -30,9 +30,13 @@ egaku = { git = "https://github.com/pleme-io/egaku" }
 mojiban = { git = "https://github.com/pleme-io/mojiban" }
 shikumi = { git = "https://github.com/pleme-io/shikumi" }
 tankyu = { git = "https://github.com/pleme-io/sakuin" }
+kaname = { git = "https://github.com/pleme-io/kaname" }
+rmcp = { version = "0.15", features = ["server", "transport-io"] }
+schemars = "0.8"
 
 # core
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
 clap = { version = "4", features = ["derive"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -40,6 +44,7 @@ arc-swap = "1.8"
 dirs = "6.0"
 thiserror = "2.0"
 anyhow = "1.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 # text editing
 ropey = "1.6"

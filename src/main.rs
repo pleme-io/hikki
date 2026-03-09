@@ -38,6 +38,8 @@ enum Command {
     List,
     /// Reindex all notes for full-text search.
     Reindex,
+    /// Run as MCP server (stdio transport) for Claude Code integration.
+    Mcp,
 }
 
 fn load_config() -> HikkiConfig {
@@ -68,13 +70,24 @@ fn main() -> Result<()> {
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
+        .with_writer(std::io::stderr)
         .init();
 
     let cli = Cli::parse();
     let config = load_config();
+
+    // Handle MCP subcommand before opening vault for GUI
+    if let Some(Command::Mcp) = cli.command {
+        let rt = tokio::runtime::Runtime::new()?;
+        rt.block_on(hikki::mcp::run(config.storage.notes_dir.clone()))
+            .map_err(|e| anyhow::anyhow!("MCP server error: {e}"))?;
+        return Ok(());
+    }
+
     let vault = Vault::open(&config.storage.notes_dir)?;
 
     match cli.command {
+        Some(Command::Mcp) => unreachable!("handled above"),
         Some(Command::Search { query }) => {
             cmd_search(&vault, &config, &query)?;
         }
