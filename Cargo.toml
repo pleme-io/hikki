@@ -24,6 +24,7 @@ strip = true
 
 [dependencies]
 # pleme-io libraries
+shidou = { git = "https://github.com/pleme-io/shidou" }
 garasu = { git = "https://github.com/pleme-io/garasu" }
 madori = { git = "https://github.com/pleme-io/madori" }
 egaku = { git = "https://github.com/pleme-io/egaku" }
@@ -41,7 +42,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 clap = { version = "4", features = ["derive"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 arc-swap = "1.8"
 dirs = "6.0"
 thiserror = "2.0"
@@ -61,3 +61,6 @@ glyphon = "0.9"
 
 [dev-dependencies]
 tempfile = "3"
+
+[patch."https://github.com/pleme-io/shidou"]
+shidou = { path = "../shidou" }

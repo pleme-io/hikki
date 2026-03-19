@@ -5,7 +5,6 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use tracing_subscriber::EnvFilter;
 
 use hikki::config::HikkiConfig;
 use hikki::editor::EditorBuffer;
@@ -42,43 +41,15 @@ enum Command {
     Mcp,
 }
 
-fn load_config() -> HikkiConfig {
-    match shikumi::ConfigDiscovery::new("hikki")
-        .env_override("HIKKI_CONFIG")
-        .discover()
-    {
-        Ok(path) => {
-            tracing::info!("loading config from {}", path.display());
-            let store =
-                shikumi::ConfigStore::<HikkiConfig>::load(&path, "HIKKI_").unwrap_or_else(|e| {
-                    tracing::warn!("failed to load config: {e}, using defaults");
-                    let tmp = std::env::temp_dir().join("hikki-default.yaml");
-                    std::fs::write(&tmp, "{}").ok();
-                    shikumi::ConfigStore::load(&tmp, "HIKKI_").expect("fallback config load")
-                });
-            HikkiConfig::clone(&store.get())
-        }
-        Err(_) => {
-            tracing::info!("no config file found, using defaults");
-            HikkiConfig::default()
-        }
-    }
-}
-
 fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
-        )
-        .with_writer(std::io::stderr)
-        .init();
+    shidou::init_tracing();
 
     let cli = Cli::parse();
-    let config = load_config();
+    let config: HikkiConfig = shidou::load_config("hikki");
 
     // Handle MCP subcommand before opening vault for GUI
     if let Some(Command::Mcp) = cli.command {
-        let rt = tokio::runtime::Runtime::new()?;
+        let rt = shidou::create_runtime()?;
         rt.block_on(hikki::mcp::run(config.storage.notes_dir.clone()))
             .map_err(|e| anyhow::anyhow!("MCP server error: {e}"))?;
         return Ok(());
