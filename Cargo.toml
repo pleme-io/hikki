@@ -27,6 +27,7 @@ strip = true
 shidou = { git = "https://github.com/pleme-io/shidou" }
 garasu = { git = "https://github.com/pleme-io/garasu" }
 madori = { git = "https://github.com/pleme-io/madori" }
+ishou-tokens = { git = "https://github.com/pleme-io/ishou", features = ["wgpu"] }
 egaku = { git = "https://github.com/pleme-io/egaku" }
 mojiban = { git = "https://github.com/pleme-io/mojiban" }
 shikumi = { git = "https://github.com/pleme-io/shikumi" }
