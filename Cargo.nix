@@ -3055,7 +3055,7 @@ rec {
         src = pkgs.fetchgit {
           url = "https://github.com/pleme-io/shikumi";
           rev = "27d1a121590632e696e0c8ff63e32af9831062d1";
-          sha256 = "qqWaT8a+HJKQuQmK37xyfpFABHwBsmYayfRJJfQ+jog=";
+          sha256 = "0dzn4axfx4asampkini6wv6j80mkiy34z44l9n4kx3kfjwai5bg1";
         };
         dependencies = [
           {
@@ -3125,7 +3125,7 @@ rec {
         src = pkgs.fetchgit {
           url = "https://github.com/pleme-io/shikumi";
           rev = "5db7873c9a109f619474228cbea15d64b4825b8a";
-          sha256 = "LJrkEo5yMS2OqfM7vsZje+uBfB6z4rfO6ZGzFzQTNdo=";
+          sha256 = "1nim2cs1gcwix77bgqmk3ry83svvcg3bwfzkm672scbjiq9f96ic";
         };
         dependencies = [
           {
@@ -4077,7 +4077,7 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/pleme-io/ishou";
-          rev = "b5089152df026c1d703f8012360e387fde4ba4c1";
+          rev = "1cfd3cf0231c461a484df7c79309f8201ca42c0a";
           sha256 = "1czd9klrmjvlmsqnyhfr0l28gbzn4dp4rvd2r48a39pr0zpplv4b";
         };
         libName = "ishou_tokens";

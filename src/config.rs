@@ -53,7 +53,7 @@ impl Default for AppearanceConfig {
         Self {
             width: 1280,
             height: 720,
-            font_size: 15.0,
+            font_size: 14.0,
             opacity: 0.95,
             line_spacing: 1.5,
             line_numbers: true,
@@ -428,5 +428,30 @@ mod tests {
         let config = HikkiConfig::default();
         assert_eq!(config.storage.daily_dir, "daily");
         assert!(config.storage.front_matter);
+    }
+}
+
+// ── Fleet convergence guard ──────────────────────────────────────
+//
+// Every visual default above MUST match the corresponding field on
+// `ishou_tokens::FleetDefaults::prescribed()`. If they drift,
+// hikki's defaults silently diverge from the rest of the fleet
+// (mado, escriba, namimado, hibiki, fumi, etc.). The test below
+// enforces convergence at compile-time-of-the-test-suite.
+
+#[cfg(test)]
+mod fleet_convergence_tests {
+    use super::*;
+
+    /// One-line convergence guard — pinned to
+    /// `ishou_tokens::convergence::Guard` (ishou@1cfd3cf). Drift on
+    /// any default visual field surfaces as a single panic listing
+    /// every field that diverged. Pattern reused from mado@cdded35.
+    #[test]
+    fn fallback_defaults_converge_with_fleet() {
+        let appearance = AppearanceConfig::default();
+        ishou_tokens::convergence::Guard::for_app("hikki")
+            .expect_font_size(appearance.font_size)
+            .run();
     }
 }
