@@ -195,6 +195,190 @@ impl Default for SyncConfig {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// Configuration prime directive — shikumi::TieredConfig
+// ─────────────────────────────────────────────────────────────────
+//
+// Per pleme-io's configuration prime directive (shikumi@27d1a12,
+// 2026-05-20), every typed config exposes bare/discovered/
+// prescribed_default tiers via the shikumi::TieredConfig trait.
+// Operators reach via:
+//
+//   HIKKI_TIER=bare hikki ...
+//   HIKKI_TIER=default hikki ...
+//
+// `bare()` = zero-opinion floor (empty strings/paths, all toggles off).
+// `prescribed_default()` = curated defaults shipped today (Default impl).
+
+impl shikumi::TieredConfig for HikkiConfig {
+    fn bare() -> Self {
+        Self {
+            appearance: <AppearanceConfig as shikumi::TieredConfig>::bare(),
+            editor: <EditorConfig as shikumi::TieredConfig>::bare(),
+            storage: <StorageConfig as shikumi::TieredConfig>::bare(),
+            search: <SearchConfig as shikumi::TieredConfig>::bare(),
+            sync: <SyncConfig as shikumi::TieredConfig>::bare(),
+            preview: <PreviewConfig as shikumi::TieredConfig>::bare(),
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+impl shikumi::TieredConfig for AppearanceConfig {
+    fn bare() -> Self {
+        Self {
+            width: 0,
+            height: 0,
+            font_size: 0.0,
+            opacity: 0.0,
+            line_spacing: 0.0,
+            line_numbers: false,
+            cursor_blink: false,
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+impl shikumi::TieredConfig for EditorConfig {
+    fn bare() -> Self {
+        Self {
+            tab_size: 0,
+            word_wrap: false,
+            spell_check: false,
+            auto_save_secs: 0,
+            auto_pairs: false,
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+impl shikumi::TieredConfig for StorageConfig {
+    fn bare() -> Self {
+        Self {
+            notes_dir: PathBuf::new(),
+            format: String::new(),
+            auto_backup: false,
+            daily_dir: String::new(),
+            front_matter: false,
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+impl shikumi::TieredConfig for SearchConfig {
+    fn bare() -> Self {
+        Self {
+            index_on_save: false,
+            max_results: 0,
+            fuzzy_threshold: 0.0,
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+impl shikumi::TieredConfig for PreviewConfig {
+    fn bare() -> Self {
+        Self {
+            enabled: false,
+            position: String::new(),
+            width_ratio: 0.0,
+            sync_scroll: false,
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+impl shikumi::TieredConfig for SyncConfig {
+    fn bare() -> Self {
+        Self {
+            enable: false,
+            method: String::new(),
+            remote_url: None,
+            auto_commit: false,
+            commit_message: String::new(),
+        }
+    }
+
+    fn prescribed_default() -> Self {
+        Self::default()
+    }
+}
+
+#[cfg(test)]
+mod tiered_tests {
+    use super::*;
+    use shikumi::{ConfigTier, TieredConfig};
+
+    #[test]
+    fn bare_is_zero_opinion() {
+        let b = <HikkiConfig as TieredConfig>::bare();
+        assert_eq!(b.appearance.width, 0);
+        assert_eq!(b.appearance.height, 0);
+        assert_eq!(b.editor.tab_size, 0);
+        assert!(!b.editor.word_wrap);
+        assert!(b.storage.notes_dir.as_os_str().is_empty());
+        assert!(b.storage.format.is_empty());
+        assert_eq!(b.search.max_results, 0);
+        assert!(!b.sync.enable);
+        assert!(!b.preview.enabled);
+    }
+
+    #[test]
+    fn prescribed_matches_default() {
+        let p = <HikkiConfig as TieredConfig>::prescribed_default();
+        let d = HikkiConfig::default();
+        assert_eq!(p.appearance.width, d.appearance.width);
+        assert_eq!(p.editor.tab_size, d.editor.tab_size);
+        assert_eq!(p.storage.format, d.storage.format);
+        assert_eq!(p.sync.method, d.sync.method);
+    }
+
+    #[test]
+    fn diff_bare_vs_default_is_non_empty() {
+        let b = <HikkiConfig as TieredConfig>::bare();
+        let d = <HikkiConfig as TieredConfig>::prescribed_default();
+        let diff = d.diff_against(&b);
+        assert!(
+            !diff.is_empty_diff(),
+            "bare and prescribed_default must differ"
+        );
+    }
+
+    #[test]
+    fn resolve_tier_dispatches() {
+        assert_eq!(
+            <HikkiConfig as TieredConfig>::resolve_tier(ConfigTier::Bare)
+                .appearance
+                .width,
+            0
+        );
+        assert!(
+            <HikkiConfig as TieredConfig>::resolve_tier(ConfigTier::Default)
+                .appearance
+                .width
+                > 0
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
