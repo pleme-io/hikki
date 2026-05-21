@@ -39,6 +39,8 @@ enum Command {
     Reindex,
     /// Run as MCP server (stdio transport) for Claude Code integration.
     Mcp,
+    /// Show the materialized config at a tier (bare/default/env/custom).
+    ConfigShow(shikumi::cli::ConfigShowCommand),
 }
 
 fn main() -> Result<()> {
@@ -55,10 +57,19 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    // Short-circuit `config-show` — operators inspecting the tier
+    // model must not be gated on vault discovery or GUI launch.
+    if let Some(Command::ConfigShow(cmd)) = &cli.command {
+        cmd.run::<HikkiConfig>("HIKKI_TIER")
+            .map_err(|e| anyhow::anyhow!("config-show failed: {e}"))?;
+        return Ok(());
+    }
+
     let vault = Vault::open(&config.storage.notes_dir)?;
 
     match cli.command {
         Some(Command::Mcp) => unreachable!("handled above"),
+        Some(Command::ConfigShow(_)) => unreachable!("handled above"),
         Some(Command::Search { query }) => {
             cmd_search(&vault, &config, &query)?;
         }

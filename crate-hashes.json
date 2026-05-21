@@ -8,5 +8,6 @@
   "git+https://github.com/pleme-io/mojiban#0.1.0": "1bdgj7n4cgaj4rfs0dcax1mdz9l9i76rxjpz7r8qkfm2vz725bzw",
   "git+https://github.com/pleme-io/sakuin#tankyu@0.1.0": "16jdlr77j8413idbhwci8rrjvvqy4a4lb0pi50myhszsy9qlvbaw",
   "git+https://github.com/pleme-io/shikumi#0.1.0": "0dzn4axfx4asampkini6wv6j80mkiy34z44l9n4kx3kfjwai5bg1",
+  "git+https://github.com/pleme-io/shikumi?branch=main#0.1.0": "1nim2cs1gcwix77bgqmk3ry83svvcg3bwfzkm672scbjiq9f96ic",
   "git+https://github.com/pleme-io/soushi#0.1.0": "1dlfqi6ycpzqdzbq2qvxyp972qsrqrsnlds3w8zjid470jav5q66"
 }

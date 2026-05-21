@@ -3047,6 +3047,153 @@ rec {
           "wasm_js" = [ "dep:wasm-bindgen" "dep:js-sys" ];
         };
       };
+      "git+https://github.com/pleme-io/shikumi#0.1.0" = rec {
+        crateName = "shikumi";
+        version = "0.1.0";
+        edition = "2024";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/pleme-io/shikumi";
+          rev = "27d1a121590632e696e0c8ff63e32af9831062d1";
+          sha256 = "0dzn4axfx4asampkini6wv6j80mkiy34z44l9n4kx3kfjwai5bg1";
+        };
+        dependencies = [
+          {
+            name = "arc-swap";
+            packageId = "arc-swap";
+          }
+          {
+            name = "async-trait";
+            packageId = "async-trait";
+          }
+          {
+            name = "figment";
+            packageId = "figment";
+            features = [ "env" "yaml" "toml" ];
+          }
+          {
+            name = "notify";
+            packageId = "notify";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+          {
+            name = "serde_yaml";
+            packageId = "serde_yaml";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.18";
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+          {
+            name = "serde_yaml";
+            packageId = "serde_yaml";
+          }
+        ];
+        features = {
+          "akeyless-native" = [ "dep:akeyless-api" "dep:tokio" ];
+          "aws-native" = [ "dep:aws-sdk-secretsmanager" "dep:aws-config" "dep:tokio" ];
+          "gcp-native" = [ "dep:reqwest" "dep:tokio" ];
+          "lisp" = [ "dep:tatara-lisp" ];
+          "op-native" = [ "dep:reqwest" "dep:tokio" ];
+          "vault-native" = [ "dep:reqwest" "dep:tokio" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
+      "git+https://github.com/pleme-io/shikumi?branch=main#0.1.0" = rec {
+        crateName = "shikumi";
+        version = "0.1.0";
+        edition = "2024";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/pleme-io/shikumi";
+          rev = "5db7873c9a109f619474228cbea15d64b4825b8a";
+          sha256 = "1nim2cs1gcwix77bgqmk3ry83svvcg3bwfzkm672scbjiq9f96ic";
+        };
+        dependencies = [
+          {
+            name = "arc-swap";
+            packageId = "arc-swap";
+          }
+          {
+            name = "async-trait";
+            packageId = "async-trait";
+          }
+          {
+            name = "clap";
+            packageId = "clap";
+            optional = true;
+            features = [ "derive" ];
+          }
+          {
+            name = "figment";
+            packageId = "figment";
+            features = [ "env" "yaml" "toml" ];
+          }
+          {
+            name = "notify";
+            packageId = "notify";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+          {
+            name = "serde_yaml";
+            packageId = "serde_yaml";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.18";
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+          {
+            name = "serde_yaml";
+            packageId = "serde_yaml";
+          }
+        ];
+        features = {
+          "akeyless-native" = [ "dep:akeyless-api" "dep:tokio" ];
+          "aws-native" = [ "dep:aws-sdk-secretsmanager" "dep:aws-config" "dep:tokio" ];
+          "cli" = [ "dep:clap" ];
+          "gcp-native" = [ "dep:reqwest" "dep:tokio" ];
+          "lisp" = [ "dep:tatara-lisp" ];
+          "op-native" = [ "dep:reqwest" "dep:tokio" ];
+          "vault-native" = [ "dep:reqwest" "dep:tokio" ];
+        };
+        resolvedDefaultFeatures = [ "cli" "default" ];
+      };
       "gl_generator" = rec {
         crateName = "gl_generator";
         version = "0.14.0";
@@ -3501,6 +3648,11 @@ rec {
             packageId = "garasu";
           }
           {
+            name = "shikumi";
+            packageId = "git+https://github.com/pleme-io/shikumi?branch=main#0.1.0";
+            features = [ "cli" ];
+          }
+          {
             name = "glyphon";
             packageId = "glyphon";
           }
@@ -3554,10 +3706,6 @@ rec {
           {
             name = "shidou";
             packageId = "shidou";
-          }
-          {
-            name = "shikumi";
-            packageId = "shikumi";
           }
           {
             name = "soushi";
@@ -4634,6 +4782,10 @@ rec {
             packageId = "garasu";
           }
           {
+            name = "shikumi";
+            packageId = "git+https://github.com/pleme-io/shikumi#0.1.0";
+          }
+          {
             name = "pollster";
             packageId = "pollster";
           }
@@ -4641,10 +4793,6 @@ rec {
             name = "serde";
             packageId = "serde";
             features = [ "derive" ];
-          }
-          {
-            name = "shikumi";
-            packageId = "shikumi";
           }
           {
             name = "thiserror";
@@ -9747,13 +9895,13 @@ rec {
             features = [ "derive" ];
           }
           {
+            name = "shikumi";
+            packageId = "git+https://github.com/pleme-io/shikumi#0.1.0";
+          }
+          {
             name = "serde";
             packageId = "serde";
             features = [ "derive" ];
-          }
-          {
-            name = "shikumi";
-            packageId = "shikumi";
           }
           {
             name = "tokio";
@@ -9771,76 +9919,6 @@ rec {
           }
         ];
 
-      };
-      "shikumi" = rec {
-        crateName = "shikumi";
-        version = "0.1.0";
-        edition = "2024";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/pleme-io/shikumi";
-          rev = "27d1a121590632e696e0c8ff63e32af9831062d1";
-          sha256 = "qqWaT8a+HJKQuQmK37xyfpFABHwBsmYayfRJJfQ+jog=";
-        };
-        dependencies = [
-          {
-            name = "arc-swap";
-            packageId = "arc-swap";
-          }
-          {
-            name = "async-trait";
-            packageId = "async-trait";
-          }
-          {
-            name = "figment";
-            packageId = "figment";
-            features = [ "env" "yaml" "toml" ];
-          }
-          {
-            name = "notify";
-            packageId = "notify";
-          }
-          {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
-          }
-          {
-            name = "serde_json";
-            packageId = "serde_json";
-          }
-          {
-            name = "serde_yaml";
-            packageId = "serde_yaml";
-          }
-          {
-            name = "thiserror";
-            packageId = "thiserror 2.0.18";
-          }
-          {
-            name = "tracing";
-            packageId = "tracing";
-          }
-        ];
-        devDependencies = [
-          {
-            name = "serde_json";
-            packageId = "serde_json";
-          }
-          {
-            name = "serde_yaml";
-            packageId = "serde_yaml";
-          }
-        ];
-        features = {
-          "akeyless-native" = [ "dep:akeyless-api" "dep:tokio" ];
-          "aws-native" = [ "dep:aws-sdk-secretsmanager" "dep:aws-config" "dep:tokio" ];
-          "gcp-native" = [ "dep:reqwest" "dep:tokio" ];
-          "lisp" = [ "dep:tatara-lisp" ];
-          "op-native" = [ "dep:reqwest" "dep:tokio" ];
-          "vault-native" = [ "dep:reqwest" "dep:tokio" ];
-        };
-        resolvedDefaultFeatures = [ "default" ];
       };
       "shlex" = rec {
         crateName = "shlex";
