@@ -15890,6 +15890,7 @@
         "sha256": "0aagg02macpsrksk74zzzjxz4f0b3qy69g6qki9m1bhj2hi69cpy"
       },
       "features": [
+        "cli",
         "default"
       ],
       "proc_macro": false,
