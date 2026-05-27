@@ -15886,8 +15886,8 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/pleme-io/shikumi",
-        "rev": "9c20595398a54ab3b6713df0ea0de42db6f13315",
-        "sha256": "0aagg02macpsrksk74zzzjxz4f0b3qy69g6qki9m1bhj2hi69cpy"
+        "rev": "5db7873c9a109f619474228cbea15d64b4825b8a",
+        "sha256": "1nim2cs1gcwix77bgqmk3ry83svvcg3bwfzkm672scbjiq9f96ic"
       },
       "features": [
         "cli",
@@ -15914,6 +15914,17 @@
           "features": [],
           "uses_default_features": true,
           "optional": false,
+          "target": null
+        },
+        {
+          "name": "clap",
+          "package_key": "clap-4.6.1",
+          "kind": "normal",
+          "features": [
+            "derive"
+          ],
+          "uses_default_features": true,
+          "optional": true,
           "target": null
         },
         {
@@ -16003,6 +16014,17 @@
           "features": [],
           "uses_default_features": true,
           "optional": false,
+          "target": null
+        },
+        {
+          "name": "clap",
+          "package_key": "clap-4.6.1",
+          "kind": "normal",
+          "features": [
+            "derive"
+          ],
+          "uses_default_features": true,
+          "optional": true,
           "target": null
         },
         {
