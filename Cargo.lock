@@ -261,6 +261,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "blake3"
+version = "1.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0aa83c34e62843d924f905e0f5c866eb1dd6545fc4d719e803d9ba6030371fce"
+dependencies = [
+ "arrayref",
+ "arrayvec",
+ "cc",
+ "cfg-if",
+ "constant_time_eq",
+ "cpufeatures",
+]
+
+[[package]]
 name = "block"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -480,6 +494,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "constant_time_eq"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -540,6 +560,15 @@ dependencies = [
  "unicode-linebreak",
  "unicode-script",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "cpufeatures"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -659,7 +688,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -735,7 +764,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -984,6 +1013,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen-macros"
+version = "0.1.10"
+source = "git+https://github.com/pleme-io/gen#712c3466375ddb1d6876193f2afb0798d30efb70"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "gen-platform"
+version = "0.1.10"
+source = "git+https://github.com/pleme-io/gen#712c3466375ddb1d6876193f2afb0798d30efb70"
+dependencies = [
+ "gen-macros",
+ "gen-types",
+ "inventory",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "gen-types"
+version = "0.1.10"
+source = "git+https://github.com/pleme-io/gen#712c3466375ddb1d6876193f2afb0798d30efb70"
+dependencies = [
+ "blake3",
+ "chrono",
+ "indexmap",
+ "inventory",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "gethostname"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1205,7 +1271,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shidou",
- "shikumi 0.1.0 (git+https://github.com/pleme-io/shikumi?branch=main)",
+ "shikumi 0.1.0",
  "soushi",
  "tankyu",
  "tempfile",
@@ -1307,6 +1373,15 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "inventory"
+version = "0.3.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4f0c30c76f2f4ccee3fe55a2435f691ca00c0e4bd87abe4f4a851b1d4dac39b"
+dependencies = [
+ "rustversion",
 ]
 
 [[package]]
@@ -1590,7 +1665,7 @@ dependencies = [
  "garasu",
  "pollster",
  "serde",
- "shikumi 0.1.0 (git+https://github.com/pleme-io/shikumi)",
+ "shikumi 0.1.69",
  "thiserror 2.0.18",
  "tracing",
  "wgpu",
@@ -1807,7 +1882,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2694,7 +2769,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2909,12 +2984,12 @@ dependencies = [
 
 [[package]]
 name = "shidou"
-version = "0.1.0"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "clap",
  "serde",
- "shikumi 0.1.0 (git+https://github.com/pleme-io/shikumi)",
+ "shikumi 0.1.69",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -2939,12 +3014,14 @@ dependencies = [
 
 [[package]]
 name = "shikumi"
-version = "0.1.0"
-source = "git+https://github.com/pleme-io/shikumi#27d1a121590632e696e0c8ff63e32af9831062d1"
+version = "0.1.69"
+source = "git+https://github.com/pleme-io/shikumi#43d62999fe6e3d043afdf18320531abfb76d01a5"
 dependencies = [
  "arc-swap",
  "async-trait",
  "figment",
+ "gen-platform",
+ "gen-types",
  "notify",
  "serde",
  "serde_json",
@@ -3334,7 +3411,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4217,7 +4294,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
