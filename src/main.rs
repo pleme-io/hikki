@@ -161,7 +161,8 @@ fn launch_gui(config: &HikkiConfig, vault: &Vault) -> Result<()> {
 
     let font_size = config.appearance.font_size;
     let line_height = font_size * config.appearance.line_spacing;
-    let mut renderer = HikkiRenderer::new(font_size, line_height);
+    let mut renderer =
+        HikkiRenderer::new(font_size, line_height).with_theme(config.appearance.theme);
 
     // Load initial note list
     if let Ok(notes) = vault.list_notes() {

@@ -46,18 +46,32 @@ pub struct AppearanceConfig {
     pub line_numbers: bool,
     /// Cursor blink.
     pub cursor_blink: bool,
+    /// Fleet visual theme. Drives every render color through ishou
+    /// design tokens (`ishou_tokens::FleetTheme::resolve()`) instead
+    /// of a hand-authored palette. `PlemeDark` is the prescribed
+    /// default; flipping this here (or via `HIKKI_TIER=bare`) reaches
+    /// the GPU renderer's palette on the next launch, so a fleet
+    /// theme switch propagates to hikki instead of silently diverging.
+    pub theme: ishou_tokens::FleetTheme,
 }
 
 impl Default for AppearanceConfig {
     fn default() -> Self {
+        // `font_size` + `theme` are pulled from the fleet baseline so
+        // a `FleetDefaults` change propagates here on recompile (the
+        // convergence-by-construction guarantee — see the guard test
+        // below). Layout fields (width/height/opacity/line_spacing)
+        // are hikki-specific and stay local.
+        let fd = ishou_tokens::FleetDefaults::prescribed();
         Self {
             width: 1280,
             height: 720,
-            font_size: 14.0,
+            font_size: fd.font_size,
             opacity: 0.95,
             line_spacing: 1.5,
             line_numbers: true,
             cursor_blink: true,
+            theme: fd.theme,
         }
     }
 }
@@ -237,11 +251,26 @@ impl shikumi::TieredConfig for AppearanceConfig {
             line_spacing: 0.0,
             line_numbers: false,
             cursor_blink: false,
+            theme: ishou_tokens::FleetTheme::bare(),
         }
     }
 
     fn prescribed_default() -> Self {
         Self::default()
+    }
+}
+
+/// Convergence-by-construction: the visual fields hikki shares with
+/// the fleet baseline (`theme`, `font_size`) are materialized from
+/// `FleetDefaults` rather than hand-copied. App-specific layout fields
+/// fall back to the zero-opinion `bare()` floor via struct-update.
+impl ishou_tokens::FleetThemedConfig for AppearanceConfig {
+    fn from_fleet(fd: &ishou_tokens::FleetDefaults) -> Self {
+        Self {
+            theme: fd.theme,
+            font_size: fd.font_size,
+            ..<Self as shikumi::TieredConfig>::bare()
+        }
     }
 }
 
@@ -452,6 +481,19 @@ mod fleet_convergence_tests {
         let appearance = AppearanceConfig::default();
         ishou_tokens::convergence::Guard::for_app("hikki")
             .expect_font_size(appearance.font_size)
+            .expect_theme(appearance.theme)
             .run();
+    }
+
+    /// `from_fleet` is the FleetThemedConfig factory — materializing
+    /// from the prescribed baseline must yield the canonical fleet
+    /// theme + font size (proves the convergence path is live).
+    #[test]
+    fn from_fleet_pulls_canonical_visuals() {
+        use ishou_tokens::{FleetDefaults, FleetTheme, FleetThemedConfig};
+        let fd = FleetDefaults::prescribed();
+        let a = AppearanceConfig::from_fleet(&fd);
+        assert_eq!(a.theme, FleetTheme::PlemeDark);
+        assert_eq!(a.font_size, fd.font_size);
     }
 }

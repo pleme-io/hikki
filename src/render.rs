@@ -5,35 +5,107 @@
 
 use garasu::GpuContext;
 use glyphon::{Attrs, Buffer, Color, TextArea, TextBounds, Weight};
+use ishou_tokens::FleetTheme;
 use madori::render::{RenderCallback, RenderContext};
 use mojiban::{MarkdownParser, TextWeight};
 
 use crate::editor::EditorBuffer;
 use crate::input::Mode;
 
-/// Nord color palette for consistent theming.
-#[allow(dead_code)]
-mod colors {
-    /// Polar Night (backgrounds)
-    pub const BG: wgpu::Color = wgpu::Color { r: 0.180, g: 0.204, b: 0.251, a: 1.0 };
-    pub const BG_LIGHT: [f32; 4] = [0.231, 0.259, 0.322, 1.0];
-    pub const GUTTER: [f32; 4] = [0.263, 0.298, 0.369, 1.0];
+/// Resolved paint palette, sourced from ishou design tokens via the
+/// app's [`FleetTheme`]. No hand-authored hex lives at a paint site:
+/// every color is resolved from `theme.resolve()` so a fleet theme
+/// switch (`PlemeDark` ↔ `Bare`) propagates to the GPU renderer.
+///
+/// Only the colors actually painted today are held here (background,
+/// foreground, dimmed foreground, status-bar mode colors); the former
+/// dead-code accents were dropped.
+struct Palette {
+    /// Surface clear color (window background).
+    bg: wgpu::Color,
+    /// Primary editor text.
+    fg: [f32; 4],
+    /// Dimmed text — inactive line numbers.
+    ///
+    /// NOTE: held as a literal pending a faithful ishou
+    /// "muted-foreground" / text-secondary token. The fleet palette
+    /// has no exact match for this mid-grey (it sits between
+    /// `snow_storm_0` and `polar_night_3`); mapping it to either
+    /// shifts line-number legibility, so it stays explicit until
+    /// ishou-tokens ships the role. See the spree notes.
+    fg_dim: [f32; 4],
+    /// Status-bar color in Normal mode.
+    mode_normal: [f32; 4],
+    /// Status-bar color in Insert mode.
+    mode_insert: [f32; 4],
+    /// Status-bar color in Visual mode.
+    mode_visual: [f32; 4],
+    /// Status-bar color in Command / Search mode.
+    mode_command: [f32; 4],
+}
 
-    /// Snow Storm (foreground)
-    pub const FG: [f32; 4] = [0.847, 0.871, 0.914, 1.0];
-    pub const FG_DIM: [f32; 4] = [0.616, 0.635, 0.659, 1.0];
+impl Palette {
+    /// Resolve every paint color from an ishou [`FleetTheme`]. The
+    /// status-bar mode colors are read from the theme's ANSI-16 slots
+    /// (frost-cyan / aurora-green / aurora-purple / aurora-yellow in
+    /// xterm order) so they track the fleet palette, not a snapshot.
+    fn from_theme(theme: FleetTheme) -> Self {
+        let t = theme.resolve();
+        Self {
+            bg: wgpu_clear_from_hex(&t.background),
+            fg: srgb_from_hex(&t.foreground),
+            fg_dim: [0.616, 0.635, 0.659, 1.0],
+            mode_normal: srgb_from_hex(&t.ansi_16[6]), // frost cyan
+            mode_insert: srgb_from_hex(&t.ansi_16[2]), // aurora green
+            mode_visual: srgb_from_hex(&t.ansi_16[5]), // aurora purple
+            mode_command: srgb_from_hex(&t.ansi_16[3]), // aurora yellow
+        }
+    }
 
-    /// Frost (accents)
-    pub const ACCENT: [f32; 4] = [0.533, 0.753, 0.816, 1.0];
-    pub const LINK: [f32; 4] = [0.506, 0.631, 0.757, 1.0];
+    /// Status-bar color for the current editor [`Mode`].
+    fn mode(&self, mode: Mode) -> [f32; 4] {
+        match mode {
+            Mode::Normal => self.mode_normal,
+            Mode::Insert => self.mode_insert,
+            Mode::Visual => self.mode_visual,
+            Mode::Command | Mode::Search => self.mode_command,
+        }
+    }
+}
 
-    /// Aurora (highlights)
-    pub const CURSOR: [f32; 4] = [0.847, 0.871, 0.914, 0.9];
-    pub const SELECTION: [f32; 4] = [0.263, 0.298, 0.369, 0.5];
-    pub const MODE_NORMAL: [f32; 4] = [0.533, 0.753, 0.816, 1.0];
-    pub const MODE_INSERT: [f32; 4] = [0.651, 0.788, 0.478, 1.0];
-    pub const MODE_VISUAL: [f32; 4] = [0.706, 0.557, 0.678, 1.0];
-    pub const MODE_COMMAND: [f32; 4] = [0.922, 0.796, 0.545, 1.0];
+impl Default for Palette {
+    fn default() -> Self {
+        Self::from_theme(FleetTheme::default())
+    }
+}
+
+/// Parse an `#RRGGBB` hex string from an ishou `ResolvedTheme` into a
+/// straight-sRGB `[r, g, b, a]` (each 0.0–1.0) — the representation
+/// glyphon + the wgpu surface clear consume. Unparseable input falls
+/// back to opaque black so a malformed token can never panic the
+/// render loop.
+fn srgb_from_hex(hex: &str) -> [f32; 4] {
+    let h = hex.strip_prefix('#').unwrap_or(hex);
+    let channel = |i: usize| -> f32 {
+        f32::from(
+            h.get(i..i + 2)
+                .and_then(|s| u8::from_str_radix(s, 16).ok())
+                .unwrap_or(0),
+        ) / 255.0
+    };
+    [channel(0), channel(2), channel(4), 1.0]
+}
+
+/// `#RRGGBB` → `wgpu::Color` for the surface clear op, via the same
+/// straight-sRGB path as [`srgb_from_hex`].
+fn wgpu_clear_from_hex(hex: &str) -> wgpu::Color {
+    let [r, g, b, a] = srgb_from_hex(hex);
+    wgpu::Color {
+        r: f64::from(r),
+        g: f64::from(g),
+        b: f64::from(b),
+        a: f64::from(a),
+    }
 }
 
 /// Visual state passed to the renderer each frame.
@@ -86,6 +158,8 @@ pub struct HikkiRenderer {
     pub state: ViewState,
     font_size: f32,
     line_height: f32,
+    /// Resolved ishou paint palette (selected by the fleet theme).
+    palette: Palette,
     /// Used by `render_preview` for markdown-to-styled-spans conversion.
     #[allow(dead_code)]
     markdown_parser: MarkdownParser,
@@ -100,10 +174,20 @@ impl HikkiRenderer {
             state: ViewState::default(),
             font_size,
             line_height,
+            palette: Palette::default(),
             markdown_parser: MarkdownParser::new(),
             width: 1280,
             height: 720,
         }
+    }
+
+    /// Select the fleet theme that drives every paint color. Wired
+    /// from `AppearanceConfig::theme` so an operator theme switch
+    /// reaches the renderer's palette.
+    #[must_use]
+    pub fn with_theme(mut self, theme: FleetTheme) -> Self {
+        self.palette = Palette::from_theme(theme);
+        self
     }
 
     /// Calculate how many visible lines fit in the editor area.
@@ -197,7 +281,11 @@ impl HikkiRenderer {
 
             let y = i as f32 * self.line_height + 5.0;
             let is_current_line = line_idx == self.state.buffer.cursor().line;
-            let line_num_color = if is_current_line { colors::FG } else { colors::FG_DIM };
+            let line_num_color = if is_current_line {
+                self.palette.fg
+            } else {
+                self.palette.fg_dim
+            };
 
             // Line number area
             areas.push(TextArea {
@@ -228,7 +316,7 @@ impl HikkiRenderer {
                     right: (x_offset + width) as i32,
                     bottom: (y + self.line_height) as i32,
                 },
-                default_color: to_glyphon_color(colors::FG),
+                default_color: to_glyphon_color(self.palette.fg),
                 custom_glyphs: &[],
             });
             buf_idx += 1;
@@ -370,15 +458,6 @@ fn to_glyphon_color(c: [f32; 4]) -> Color {
     )
 }
 
-fn mode_color(mode: Mode) -> [f32; 4] {
-    match mode {
-        Mode::Normal => colors::MODE_NORMAL,
-        Mode::Insert => colors::MODE_INSERT,
-        Mode::Visual => colors::MODE_VISUAL,
-        Mode::Command | Mode::Search => colors::MODE_COMMAND,
-    }
-}
-
 impl RenderCallback for HikkiRenderer {
     fn init(&mut self, _gpu: &GpuContext) {
         tracing::info!("hikki renderer initialized");
@@ -416,7 +495,7 @@ impl RenderCallback for HikkiRenderer {
 
         // Status bar area
         let status_y = ctx.height as f32 - self.line_height - 5.0;
-        let status_color = to_glyphon_color(mode_color(self.state.mode));
+        let status_color = to_glyphon_color(self.palette.mode(self.state.mode));
         all_areas.push(TextArea {
             buffer: all_buffers.last().expect("status buffer should exist"),
             left: 5.0,
@@ -456,7 +535,7 @@ impl RenderCallback for HikkiRenderer {
                     view: ctx.surface_view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(colors::BG),
+                        load: wgpu::LoadOp::Clear(self.palette.bg),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -494,9 +573,35 @@ mod tests {
 
     #[test]
     fn mode_color_mapping() {
-        assert_eq!(mode_color(Mode::Normal), colors::MODE_NORMAL);
-        assert_eq!(mode_color(Mode::Insert), colors::MODE_INSERT);
-        assert_eq!(mode_color(Mode::Visual), colors::MODE_VISUAL);
+        let p = Palette::default();
+        assert_eq!(p.mode(Mode::Normal), p.mode_normal);
+        assert_eq!(p.mode(Mode::Insert), p.mode_insert);
+        assert_eq!(p.mode(Mode::Visual), p.mode_visual);
+        assert_eq!(p.mode(Mode::Command), p.mode_command);
+        assert_eq!(p.mode(Mode::Search), p.mode_command);
+    }
+
+    #[test]
+    fn palette_resolves_from_ishou_theme() {
+        // PlemeDark background is Nord polar-night #2E3440 — the
+        // canonical fleet dark surface. Proves the palette is sourced
+        // from ishou tokens, not a hand-authored literal.
+        let p = Palette::from_theme(FleetTheme::PlemeDark);
+        assert!((p.bg.r - 46.0 / 255.0).abs() < 0.001);
+        assert!((p.bg.g - 52.0 / 255.0).abs() < 0.001);
+        assert!((p.bg.b - 64.0 / 255.0).abs() < 0.001);
+        // Bare theme drops to a black surface + white foreground.
+        let bare = Palette::from_theme(FleetTheme::Bare);
+        assert_eq!(bare.bg.r, 0.0);
+        assert_eq!(bare.fg, [1.0, 1.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn srgb_from_hex_parses_and_falls_back() {
+        assert_eq!(srgb_from_hex("#000000"), [0.0, 0.0, 0.0, 1.0]);
+        assert_eq!(srgb_from_hex("#FFFFFF"), [1.0, 1.0, 1.0, 1.0]);
+        // Malformed input must not panic — falls back to black.
+        assert_eq!(srgb_from_hex("nope"), [0.0, 0.0, 0.0, 1.0]);
     }
 
     #[test]
